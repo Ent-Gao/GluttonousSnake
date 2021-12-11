@@ -70,11 +70,11 @@ int Snake::addAddLength(int addAddLength)
     this->addLength += addAddLength;
     return 0;
 }
-
+//Adjust是为了离开界面后能从另一侧返回。
+//蛇头一次走accelerator格，蛇尾根据增加的长度决定走多远，但不会后退。一次循环蛇长度最多增加accelerator格，还没加完的话下次循环再加
 int Snake::growMove()
 {
     int adjust, xAdjust, yAdjust, previousHeadIndex, currentHeadIndex;
-
     for (int i = 0; i < this->accelerator; i++)
     {
         currentHeadIndex = (this->tail + this->length + i) % (indexSize);
@@ -191,12 +191,12 @@ Bonus::Bonus()
 Bonus::~Bonus()
 {
 }
-
+//决定bonus对象每次循环如何演化
 int Bonus::fade()
 {
     int lifeBar = 2 * 10 * this->life / (halfPerimeter);
     char del = 127;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx - 22, mapy + 1});
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx - 22, mapy + 1}); //画表示bonus剩余时间的bar
     cout << ": ";
     for (int i = 0; i < lifeBar; i++)
     {
@@ -212,13 +212,13 @@ int Bonus::fade()
         cout << del << del;
         this->setPosition(mapSize + mapx * 2 - 24);
     }
+    //播放声音会导致卡顿，应该是该系统调用不是异步的，故删掉
     /*
     if (this->life)
     {
         Beep(600, 200);
     }
     */
-    //播放声音会导致卡顿
     this->life = (this->life == 0) ? 0 : (this->life - 1);
     return 0;
 }
@@ -233,7 +233,7 @@ int Bonus::getLife() const
 {
     return this->life;
 }
-
+//改变决定转弯时的图像怎么画的参数，即改变turn，菱形的一二三四象限的图像对应switch的1234
 int decideTurn(int direction, int directionPre, int &turn)
 {
     switch (direction - directionPre)
@@ -265,17 +265,19 @@ int drawSnake(const Snake &s, int turn)
     int previousTail = (s.getTail() - accelerator + indexSize) % indexSize;
     int previousHead = (s.getTail() + length - 1 - accelerator + indexSize) % indexSize;
     const array<int, indexSize> &sCurrent = s.getSnake();
-
+    //删掉过期图像
     for (int i = 0; i < accelerator; i++)
     {
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {static_cast<short>(sCurrent.at((previousTail + i) % indexSize) % mapx), static_cast<short>(sCurrent.at((previousTail + i) % indexSize) / mapx)});
         cout << del << del;
     }
+    //重画尾巴，防止尾巴还是转弯图像
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2);
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {static_cast<short>(sCurrent.at(s.getTail()) % mapx), static_cast<short>(sCurrent.at(s.getTail()) / mapx)});
     cout << "■";
+    //画新加的“颈部”
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {static_cast<short>(sCurrent.at((previousHead) % indexSize) % mapx), static_cast<short>(sCurrent.at((previousHead) % indexSize) / mapx)});
-    switch (turn)
+    switch (turn) //根据turn画转弯处的字符图像
     {
     case 0:
         cout << "■";
@@ -301,10 +303,11 @@ int drawSnake(const Snake &s, int turn)
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {static_cast<short>(sCurrent.at((previousHead + i) % indexSize) % mapx), static_cast<short>(sCurrent.at((previousHead + i) % indexSize) / mapx)});
         cout << "■";
     }
+    //画头
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {static_cast<short>(sCurrent.at((s.getTail() + length - 1) % indexSize) % mapx), static_cast<short>(sCurrent.at((s.getTail() + length - 1) % indexSize) / mapx)});
     cout << "■";
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //变回黑白背景，防止Sleep函数时背景变化
     return 0;
 }
 
@@ -318,7 +321,7 @@ int drawFoodAndBonus(int position, int type, int color)
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
     return 0;
 }
-
+//碰撞检测，返回值0：无事发生   1：吃到食物     2：吃到bonus    -1：吃到自己
 int collisionDetection(const Snake &s, const Food &f, const Bonus &b)
 {
     int indexTail = s.getTail();
@@ -346,7 +349,7 @@ int collisionDetection(const Snake &s, const Food &f, const Bonus &b)
     }
     return result;
 }
-
+//检测生成位置是否与其他对象冲突，提供对蛇的检测，和对一个额外的forbiddenPosition的检测。冲突返回1，不然为0
 int spawnDetection(int position, int forbiddenPosition, const Snake &s)
 {
     int result = 0;
@@ -392,10 +395,12 @@ int main()
     int difficultyMode = 4; //1：简单 4：普通 9：困难
     while (true)
     {
-        if (i == 0) //主界面
+        switch (i)
+        {
+        case 0: //主界面
         {
             system("cls");
-            //画logo
+            //画logo等固定界面
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 8, indexSize / mapx - 5});
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
             cout << "■";
@@ -446,7 +451,6 @@ int main()
                 cout << "退出";
                 break;
             case 2:
-
                 SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 6, indexSize / mapx + 3});
                 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 244);
                 cout << "选择难度";
@@ -507,8 +511,9 @@ int main()
             }
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //防止sleep时背景变化
             Sleep(100);
+            break;
         }
-        else if (i == 2) //切换难度界面
+        case 2: //进入切换难度界面
         {
             system("cls");
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 22, mapy + 1});
@@ -580,8 +585,9 @@ int main()
             }
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //防止sleep时背景变化
             Sleep(100);
+            break;
         }
-        else if (i == 3) //玩法介绍界面
+        case 3: //主界面控制：玩法介绍
         {
             system("cls");
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 8, mapy + 1});
@@ -596,13 +602,14 @@ int main()
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 9, indexSize / mapx - 1});
             cout << "按S键或K键向下";
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 9, indexSize / mapx});
-            cout << "按A键或J键向上";
+            cout << "按A键或J键向左";
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 9, indexSize / mapx + 1});
-            cout << "按D键或L键向上";
+            cout << "按D键或L键向右";
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 16, indexSize / mapx + 2});
             cout << "按SPACE键暂停，按其他键继续";
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 12, indexSize / mapx + 3});
             cout << "按Esc键中断游戏并退出";
+            //按键处理
             int k = _kbhit();
             if (k)
             {
@@ -616,8 +623,9 @@ int main()
             }
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //防止sleep时背景变化
             Sleep(100);
+            break;
         }
-        else if (i == 5) //结束时的选择界面
+        case 5: //结束时的选择界面
         {
             system("cls");
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 6, indexSize / mapx - 1});
@@ -626,6 +634,7 @@ int main()
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 4, indexSize / mapx});
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
             cout << score;
+            //达到最长长度时的胜利界面
             if (victory)
             {
                 SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {mapx / 2 - 5, indexSize / mapx + 1});
@@ -664,12 +673,12 @@ int main()
             }
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //防止sleep时背景变化
             Sleep(100);
+            break;
         }
-        else if (i == 4) //退出
-        {
+        case 4: //退出
             return 0;
-        }
-        else if (i == 1) //游戏运行
+            break;
+        case 1: //进入游戏运行界面
         {
             system("cls");
             Snake s;
@@ -678,7 +687,7 @@ int main()
             srand((unsigned int)time(NULL)); //食物生成种子
             f.spawn();
             f.setPosition((rand() % indexSize) * 2);
-            while (spawnDetection(f.getPosition(), b.getPosition(), s))
+            while (spawnDetection(f.getPosition(), b.getPosition(), s)) //生成地点与其他对象冲突了的话就重设生成地点
             {
                 f.setPosition((rand() % indexSize) * 2);
             }
@@ -689,7 +698,7 @@ int main()
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
             cout << "■";
             _getch();
-            //画分割线
+            //画分割线等固定界面
             SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, mapy});
             SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
             for (int i = 0; i < mapx / 2; i++)
@@ -705,16 +714,15 @@ int main()
             cout << "当前得分:";
             //游戏循环
             int gameCtl = 1; //控制游戏循环
-            int turn = 0;
+            int turn = 0;    //转弯处图像显示参数
             while (gameCtl)
             {
-
                 SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {16, mapy + 1});
                 cout << score;
                 drawFoodAndBonus(f.getPosition(), 1, 3); //画食物
                 drawFoodAndBonus(b.getPosition(), 2, 4); //画bonus
                 drawSnake(s, turn);
-                turn = 0;
+                turn = 0; //除非改变，turn为0，即方框图形，不会有转向图形
                 //读取键盘控制，改变方向
                 int k = _kbhit();
                 char c;
@@ -792,12 +800,12 @@ int main()
                     }
                 }
 
-                b.fade();
+                b.fade(); //bonus演化
                 int result = collisionDetection(s, f, b);
                 int num = f.getNum();
                 switch (result)
                 {
-                case -1:
+                case -1: //吃到尾巴，游戏结束
                     Beep(600, 250);
                     Beep(450, 150);
                     Beep(300, 450);
@@ -806,19 +814,19 @@ int main()
                     cout << "游戏结束，请按任意键...";
                     _getch();
                     i = 5;
-                    gameCtl = 0;
+                    gameCtl = 0; //终止游戏循环
                     break;
-                case 0:
+                case 0: //正常移动
                     s.growMove();
                     break;
-                case 1:
+                case 1: //吃到食物
                     //Beep(500, 200);
                     s.addAddLength(1);
                     s.growMove();
                     score += 10;
-                    f.spawn();
+                    f.spawn(); //生成新食物，总食物数目加一
                     f.setPosition((rand() % indexSize) * 2);
-                    while (spawnDetection(f.getPosition(), b.getPosition(), s))
+                    while (spawnDetection(f.getPosition(), b.getPosition(), s)) //生成地点与其他对象冲突了的话就重设生成地点
                     {
                         f.setPosition((rand() % indexSize) * 2);
                     }
@@ -832,7 +840,7 @@ int main()
                         }
                     }
                     break;
-                case 2:
+                case 2: //吃到奖励
                     Beep(800, 200);
                     Beep(1000, 100);
                     s.growMove();
@@ -855,7 +863,11 @@ int main()
                 }
                 Sleep(400 / difficultyMode);
             } //游戏内的while
-        }     //进游戏界面的判断if
-    }         //最外的while
+            break;
+        }
+        default:
+            break;
+        }
+    } //最外的while
     return 0;
 }
