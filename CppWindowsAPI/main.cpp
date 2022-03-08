@@ -16,7 +16,7 @@ const int indexSize = mapSize / 2;
 const int halfPerimeter = mapx + mapy;
 
 //**************************************
-//Snake 类
+// Snake 类
 class Snake
 {
 private:
@@ -70,7 +70,7 @@ int Snake::addAddLength(int addAddLength)
     this->addLength += addAddLength;
     return 0;
 }
-//Adjust是为了离开界面后能从另一侧返回。
+// Adjust是为了离开界面后能从另一侧返回。
 //蛇头一次走accelerator格，蛇尾根据增加的长度决定走多远，但不会后退。一次循环蛇长度最多增加accelerator格，还没加完的话下次循环再加
 int Snake::growMove()
 {
@@ -120,7 +120,7 @@ int Snake::getAccelerator() const
     return this->accelerator;
 }
 
-//Food类
+// Food类
 class Food
 {
 private:
@@ -168,7 +168,7 @@ int Food::getNum() const
     return this->num;
 }
 
-//Bonus类
+// Bonus类
 class Bonus : public Food
 {
 private:
@@ -392,7 +392,7 @@ int main()
     int victory = 0; //判断是否胜利（达到最长长度）
     int i = 0;       //控制主界面（i = 0）、游戏界面（i = 1）、切换难度设置（i = 2）、玩法介绍（i = 3）、结束界面（i = 5）、退出（i = 4）。
     int iTem = 1;
-    int difficultyMode = 4; //1：简单 4：普通 9：困难
+    int difficultyMode = 4; // 1：简单 4：普通 9：困难
     while (true)
     {
         switch (i)
@@ -496,11 +496,11 @@ int main()
                 char c = _getch();
                 switch (c)
                 {
-                case '\r': //Enter键
+                case '\r': // Enter键
                     iTem = (iTem) % 4 + 1;
                     Beep(700, 150);
                     break;
-                case ' ': //Space键
+                case ' ': // Space键
                     i = iTem;
                     iTem = 1;
                     Beep(700, 150);
@@ -564,17 +564,17 @@ int main()
                 char c = _getch();
                 switch (c)
                 {
-                case '\r': //Enter键
+                case '\r': // Enter键
                     iTem = (iTem) % 3 + 1;
                     Beep(700, 150);
                     break;
-                case ' ': //Space键
+                case ' ': // Space键
                     difficultyMode = iTem * iTem;
                     iTem = 2;
                     i = 0;
                     Beep(700, 150);
                     break;
-                case 27: //Esc键
+                case 27: // Esc键
                     i = 0;
                     iTem = 2;
                     Beep(700, 150);
@@ -651,19 +651,19 @@ int main()
                 char c = _getch();
                 switch (c)
                 {
-                case '\r':     //Enter键
+                case '\r':     // Enter键
                     score = 0; //清空当局分数
                     victory = 0;
                     i = 0;
                     Beep(700, 150);
                     break;
-                case ' ':      //Space键
+                case ' ':      // Space键
                     score = 0; //清空当局分数
                     victory = 0;
                     i = 1;
                     Beep(700, 150);
                     break;
-                case 27: //Esc键
+                case 27: // Esc键
                     i = 4;
                     Beep(700, 150);
                     break;
@@ -719,9 +719,6 @@ int main()
             {
                 SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {16, mapy + 1});
                 cout << score;
-                drawFoodAndBonus(f.getPosition(), 1, 3); //画食物
-                drawFoodAndBonus(b.getPosition(), 2, 4); //画bonus
-                drawSnake(s, turn);
                 turn = 0; //除非改变，turn为0，即方框图形，不会有转向图形
                 //读取键盘控制，改变方向
                 int k = _kbhit();
@@ -800,7 +797,7 @@ int main()
                     }
                 }
 
-                b.fade(); //bonus演化
+                b.fade(); // bonus演化
                 int result = collisionDetection(s, f, b);
                 int num = f.getNum();
                 switch (result)
@@ -820,7 +817,7 @@ int main()
                     s.growMove();
                     break;
                 case 1: //吃到食物
-                    //Beep(500, 200);
+                    // Beep(500, 200);
                     s.addAddLength(1);
                     s.growMove();
                     score += 10;
@@ -861,6 +858,9 @@ int main()
                     gameCtl = 0;
                     victory = 1;
                 }
+                drawFoodAndBonus(f.getPosition(), 1, 3); //画食物
+                drawFoodAndBonus(b.getPosition(), 2, 4); //画bonus
+                drawSnake(s, turn);
                 Sleep(400 / difficultyMode);
             } //游戏内的while
             break;
